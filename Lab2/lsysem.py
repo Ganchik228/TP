@@ -1,6 +1,5 @@
 import turtle
 
-turtle.hideturtle()
 turtle.tracer(1)
 turtle.penup()
 turtle.setposition(-150, 0)
