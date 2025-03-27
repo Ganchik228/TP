@@ -1,7 +1,5 @@
 import heapq
-import sys
 import pickle
-from collections import defaultdict
 
 class HuffmanNode:
     def __init__(self, char=None, freq=0, left=None, right=None):
@@ -14,9 +12,12 @@ class HuffmanNode:
         return self.freq < other.freq
 
 def build_frequency_dict(data):
-    frequency = defaultdict(int)
+    frequency = {}
     for char in data:
-        frequency[char] += 1
+        if char in frequency:
+            frequency[char] += 1
+        else:
+            frequency[char] = 1
     return frequency
 
 def build_huffman_tree(frequency):
