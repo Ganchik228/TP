@@ -1,78 +1,52 @@
+def gorner_scheme(text):
+    result = ord(text[0])
+    base = 31
+    for i in range(len(text)-1):
+        result = result * base + ord(text[i+1])
+    return result
+
+def calculate_hash(text):
+    q = 2147483647
+    return gorner_scheme(text) % q
+
 import time
-from typing import List, Tuple
 
-def read_fasta(file_path: str) -> str:
-    """Читает FASTA файл и возвращает последовательность."""
-    with open(file_path, 'r') as file:
-        lines = file.readlines()
-    return ''.join(line.strip() for line in lines if not line.startswith('>'))
-
-def naive_search(text: str, pattern: str) -> List[int]:
-    """Наивный алгоритм поиска."""
-    occurrences = []
-    n, m = len(text), len(pattern)
-    for i in range(n - m + 1):
-        if text[i:i+m] == pattern:
-            occurrences.append(i)
-    return occurrences
-
-def bmh_search(text: str, pattern: str) -> List[int]:
-    """Алгоритм Бойера-Мура-Хорспула."""
-    occurrences = []
-    n, m = len(text), len(pattern)
-    if m > n:
-        return occurrences
-
-    # Предварительная обработка
-    skip = {c: m for c in set(text)}
-    for i in range(m - 1):
-        skip[pattern[i]] = m - i - 1
-
-    # Поиск
-    i = m - 1
-    while i < n:
-        k = 0
-        while k < m and pattern[m - 1 - k] == text[i - k]:
-            k += 1
-        if k == m:
-            occurrences.append(i - m + 1)
-        i += skip.get(text[i], m)
-
-    return occurrences
-
-def find_longest_cat_sequence(genome: str) -> Tuple[str, List[int]]:
-    """Находит самую длинную последовательность 'CAT..CAT' в геноме."""
-    longest_seq = ""
-    positions = []
-    for i in range(1, len(genome) // 3 + 1):
-        pattern = "CAT" * i
-        occurrences = bmh_search(genome, pattern)
-        if occurrences:
-            longest_seq = pattern
-            positions = occurrences
-        else:
+def search_text(text, sub_text):
+    start_time = time.time()
+    base = 31
+    q = 2147483647
+    sub_hash = calculate_hash(sub_text)
+    m = len(sub_text)
+    current_hash = calculate_hash(text[0:m])
+    i = 0
+    while True:
+        if sub_hash == current_hash:
+            if sub_text == text[i:i+m]:
+                return i 
+        if i + m >= len(text):
             break
-    return longest_seq, positions
+        current_hash = ((current_hash - ord(text[i]) * base ** (m-1)) * base + ord(text[i + m])) % q
+        i = i + 1
+    end_time = time.time()
+    print(f"Рабин: {end_time - start_time:.6f} секунд")
+    return None
 
-def main():
-    genome = read_fasta("cat_genome.fasta")  # Замените на путь к вашему FASTA файлу
-
-    # Поиск самой длинной последовательности CAT
+def simple_search(text, sub_text):
     start_time = time.time()
-    longest_seq, positions = find_longest_cat_sequence(genome)
-    bmh_time = time.time() - start_time
+    n = len(text)
+    m = len(sub_text)
+    for i in range(n - m + 1):
+        j = 0
+        while j < m and text[i+j] == sub_text[j]:
+            j += 1
+        if j == m:
+            return i
+    end_time = time.time()
+    print(f"Простой поиск: {end_time - start_time:.6f} секунд")
+    return None
 
-    # Наивный поиск для сравнения
-    start_time = time.time()
-    naive_positions = naive_search(genome, longest_seq)
-    naive_time = time.time() - start_time
-
-    print(f"Самая длинная последовательность 'CAT': {longest_seq}")
-    print(f"Длина последовательности: {len(longest_seq)}")
-    print(f"Количество вхождений: {len(positions)}")
-    print(f"Позиции вхождений: {positions}")
-    print(f"Время выполнения БМХ: {bmh_time:.6f} секунд")
-    print(f"Время выполнения наивного алгоритма: {naive_time:.6f} секунд")
-
-if __name__ == "__main__":
-    main()
+with open("qlgoaxgwen gr,sdz.txt", "r") as file:
+    text = file.read()
+sub_text = "tdm"
+print("Рабин", search_text(text, sub_text))
+print("Простая:", simple_search(text, sub_text))
